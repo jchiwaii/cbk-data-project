@@ -1,0 +1,266 @@
+/* Kenya CBK Economic Dashboard - Custom Styles */
+
+/* CSS Variables */
+:root {
+    --cbk-primary: #00A86B;
+    --cbk-secondary: #FFD700;
+    --cbk-tertiary: #1E90FF;
+    --cbk-danger: #FF6B6B;
+    --bg-dark: #1a1a2e;
+    --bg-card: #16213e;
+    --text-light: #e8e8e8;
+    --text-muted: #8892b0;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cbk-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #00c77a;
+}
+
+/* Header styling */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+/* Card enhancements */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 168, 107, 0.15);
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+/* Tab styling */
+.nav-tabs {
+    border-bottom: 2px solid rgba(0, 168, 107, 0.2);
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 8px 8px 0 0;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: rgba(0, 168, 107, 0.1);
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: var(--bg-card);
+    border-bottom: 3px solid var(--cbk-primary);
+    color: var(--cbk-primary) !important;
+}
+
+/* KPI Card specific styling */
+.kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--cbk-primary), var(--cbk-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Chart container */
+.dash-graph {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Plotly chart customization */
+.js-plotly-plot .plotly .modebar {
+    right: 10px !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn {
+    color: var(--text-muted) !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn:hover {
+    color: var(--cbk-primary) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    h4 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Loading animation */
+._dash-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+._dash-loading::after {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 168, 107, 0.3);
+    border-top-color: var(--cbk-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Tooltip styling */
+.plotly .hoverlayer .hovertext {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Container padding */
+.container-fluid {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Gradient text for headers */
+.gradient-text {
+    background: linear-gradient(135deg, var(--cbk-primary) 0%, var(--cbk-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Border accents */
+.border-accent {
+    border-left: 3px solid var(--cbk-primary);
+}
+
+/* Stats highlight */
+.stat-positive {
+    color: var(--cbk-primary);
+}
+
+.stat-negative {
+    color: var(--cbk-danger);
+}
+
+/* Smooth transitions */
+* {
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-in-out;
+}
+
+/* Focus states */
+button:focus,
+.btn:focus,
+a:focus {
+    outline: 2px solid var(--cbk-primary);
+    outline-offset: 2px;
+}
+
+/* Table styling (if used) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+    background-color: rgba(0, 168, 107, 0.1);
+    font-weight: 600;
+    color: var(--cbk-primary);
+}
+
+tr:hover {
+    background-color: rgba(0, 168, 107, 0.05);
+}
+
+/* Badge styling */
+.badge {
+    padding: 0.4em 0.8em;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.badge-success {
+    background-color: var(--cbk-primary);
+}
+
+.badge-warning {
+    background-color: var(--cbk-secondary);
+    color: #1a1a2e;
+}
+
+.badge-danger {
+    background-color: var(--cbk-danger);
+}
+
+/* Footer */
+footer, .footer {
+    opacity: 0.8;
+}
+
+footer:hover, .footer:hover {
+    opacity: 1;
+}
+
