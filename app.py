@@ -2,6 +2,7 @@
 Kenya CBK Economic Data Dashboard
 Interactive dashboard for analyzing Kenya's macroeconomic indicators
 """
+import os
 import dash
 from dash import dcc, html, callback, Input, Output
 import dash_bootstrap_components as dbc
@@ -998,5 +999,6 @@ def render_tab_content(active_tab):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8050)
+    port = int(os.getenv("PORT", 8050))
+    app.run_server(host="0.0.0.0", port=port, debug=False)
 
