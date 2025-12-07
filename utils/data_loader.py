@@ -196,11 +196,16 @@ def get_latest_metrics():
     fiscal = load_revenue_expenditure_data()
     
     latest_gdp = gdp.iloc[-1]
-    latest_inflation = inflation.iloc[0]  # Data is sorted desc by date
+    
+    # Get the most recent inflation data (sorted by date, take latest)
+    inflation_sorted = inflation.sort_values('Date', ascending=False)
+    latest_inflation = inflation_sorted.iloc[0]
+    
+    # Get latest debt data
     latest_debt = debt.iloc[-1]
     
-    # Get latest fiscal year data (June is fiscal year end)
-    latest_fiscal = fiscal[fiscal['Month'] == 6].iloc[-1] if len(fiscal[fiscal['Month'] == 6]) > 0 else fiscal.iloc[-1]
+    # Get latest fiscal data available
+    latest_fiscal = fiscal.iloc[-1]
     
     return {
         'gdp': {

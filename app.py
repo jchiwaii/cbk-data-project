@@ -92,7 +92,7 @@ def create_overview_tab():
     kpi_row = dbc.Row([
         dbc.Col([
             create_kpi_card(
-                "GDP (2024)",
+                f"GDP ({metrics['gdp']['year']})",
                 format_trillion(metrics['gdp']['nominal']),
                 f"Growth: {metrics['gdp']['growth']:.1f}%",
                 "fa-chart-line",
@@ -161,15 +161,16 @@ def create_overview_tab():
         template=CHART_TEMPLATE,
         height=250,
         margin=dict(l=20, r=20, t=40, b=20),
-        title=dict(text='Debt Composition', font=dict(size=14)),
+        title=dict(text=f'Debt Composition ({latest_debt["Date"].strftime("%b %Y")})', font=dict(size=14)),
         showlegend=True,
         legend=dict(orientation='h', yanchor='bottom', y=-0.1),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
     
-    # Inflation trend mini chart
-    inflation_recent = inflation_data.head(36)  # Last 3 years
+    # Inflation trend mini chart - sort by date descending and take last 36 months
+    inflation_sorted = inflation_data.sort_values('Date', ascending=False)
+    inflation_recent = inflation_sorted.head(36).sort_values('Date')  # Last 3 years, then re-sort for chart
     inflation_fig = go.Figure()
     inflation_fig.add_trace(go.Scatter(
         x=inflation_recent['Date'], y=inflation_recent['12_Month_Inflation'],
@@ -539,8 +540,9 @@ def create_inflation_tab():
         yaxis=dict(title='Month', autorange='reversed')
     )
     
-    # Recent inflation stats
-    recent_inflation = inflation_data.head(12)
+    # Recent inflation stats - get last 12 months by date
+    inflation_sorted = inflation_data.sort_values('Date', ascending=False)
+    recent_inflation = inflation_sorted.head(12).sort_values('Date')
     recent_bar = go.Figure()
     recent_bar.add_trace(go.Bar(
         x=recent_inflation['Date'], y=recent_inflation['12_Month_Inflation'],
@@ -726,137 +728,178 @@ def create_fiscal_tab():
 # ============== CORRELATIONS TAB ==============
 def create_correlations_tab():
     """Create the Correlations tab content"""
-    gdp_data = load_gdp_data()
-    inflation_data = load_inflation_data()
-    debt_data = load_public_debt_data()
-    fiscal_summary = get_annual_fiscal_summary()
+    try:
+        gdp_data = load_gdp_data()
+        inflation_data = load_inflation_data()
+        debt_data = load_public_debt_data()
+        
+        # Get annual averages for inflation
+        inflation_annual = inflation_data.groupby('Year')['12_Month_Inflation'].mean().reset_index()
+        inflation_annual.columns = ['Year', 'Avg_Inflation']
+        
+        # Merge datasets
+        merged = gdp_data.merge(inflation_annual, on='Year', how='inner')
+        
+        # Get year-end debt
+        debt_yearly = debt_data.copy()
+        debt_yearly['Year'] = debt_yearly['Date'].dt.year
+        yearly_debt = debt_yearly.groupby('Year')['Total_Debt'].last().reset_index()
+        merged = merged.merge(yearly_debt, on='Year', how='inner')
+        
+        # Handle negative GDP_Growth for size parameter (must be positive)
+        merged['GDP_Growth_Size'] = merged['GDP_Growth'].abs() + 1
+        
+        # GDP vs Inflation scatter (without trendline to avoid statsmodels issues)
+        gdp_inflation = go.Figure()
+        gdp_inflation.add_trace(go.Scatter(
+            x=merged['Nominal_GDP'], 
+            y=merged['Avg_Inflation'],
+            mode='markers',
+            marker=dict(
+                size=merged['GDP_Growth_Size'] * 3,
+                color=merged['Year'],
+                colorscale='viridis',
+                showscale=True,
+                colorbar=dict(title='Year')
+            ),
+            text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['Nominal_GDP']:,.0f}<br>Inflation: {r['Avg_Inflation']:.1f}%<br>Growth: {r['GDP_Growth']:.1f}%", axis=1),
+            hovertemplate='%{text}<extra></extra>'
+        ))
+        # Add trendline manually using numpy
+        z = np.polyfit(merged['Nominal_GDP'], merged['Avg_Inflation'], 1)
+        p = np.poly1d(z)
+        x_line = np.linspace(merged['Nominal_GDP'].min(), merged['Nominal_GDP'].max(), 100)
+        gdp_inflation.add_trace(go.Scatter(
+            x=x_line, y=p(x_line),
+            mode='lines',
+            line=dict(color='rgba(255,255,255,0.5)', dash='dash'),
+            name='Trend',
+            showlegend=False
+        ))
+        gdp_inflation.update_layout(
+            template=CHART_TEMPLATE,
+            height=400,
+            margin=dict(l=60, r=40, t=60, b=60),
+            title=dict(text='GDP vs Inflation (sized by growth rate)', font=dict(size=16)),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Nominal GDP (KSh M)'),
+            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Avg Inflation (%)')
+        )
+        
+        # Debt vs GDP scatter
+        debt_gdp_scatter = go.Figure()
+        debt_gdp_scatter.add_trace(go.Scatter(
+            x=merged['Nominal_GDP'], 
+            y=merged['Total_Debt'],
+            mode='markers',
+            marker=dict(color=COLORS['tertiary'], size=12),
+            text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['Nominal_GDP']:,.0f}<br>Debt: {r['Total_Debt']:,.0f}", axis=1),
+            hovertemplate='%{text}<extra></extra>'
+        ))
+        # Add trendline
+        z2 = np.polyfit(merged['Nominal_GDP'], merged['Total_Debt'], 1)
+        p2 = np.poly1d(z2)
+        debt_gdp_scatter.add_trace(go.Scatter(
+            x=x_line, y=p2(x_line),
+            mode='lines',
+            line=dict(color='rgba(255,255,255,0.5)', dash='dash'),
+            name='Trend',
+            showlegend=False
+        ))
+        debt_gdp_scatter.update_layout(
+            template=CHART_TEMPLATE,
+            height=400,
+            margin=dict(l=60, r=40, t=60, b=60),
+            title=dict(text='GDP vs Total Public Debt', font=dict(size=16)),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Nominal GDP (KSh M)'),
+            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Total Debt (KSh M)')
+        )
     
-    # Get annual averages for inflation
-    inflation_annual = inflation_data.groupby('Year')['12_Month_Inflation'].mean().reset_index()
-    inflation_annual.columns = ['Year', 'Avg_Inflation']
-    
-    # Merge datasets
-    merged = gdp_data.merge(inflation_annual, on='Year', how='inner')
-    
-    # Get year-end debt
-    debt_data['Year'] = debt_data['Date'].dt.year
-    yearly_debt = debt_data.groupby('Year')['Total_Debt'].last().reset_index()
-    merged = merged.merge(yearly_debt, on='Year', how='inner')
-    
-    # GDP vs Inflation scatter
-    gdp_inflation = px.scatter(
-        merged, x='Nominal_GDP', y='Avg_Inflation',
-        size='GDP_Growth', color='Year',
-        hover_data=['Year', 'GDP_Growth'],
-        trendline='ols',
-        color_continuous_scale='viridis'
-    )
-    gdp_inflation.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='GDP vs Inflation (sized by growth rate)', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Nominal GDP (KSh M)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Avg Inflation (%)')
-    )
-    
-    # Debt vs GDP scatter
-    debt_gdp_scatter = px.scatter(
-        merged, x='Nominal_GDP', y='Total_Debt',
-        hover_data=['Year'],
-        trendline='ols'
-    )
-    debt_gdp_scatter.update_traces(marker=dict(color=COLORS['tertiary'], size=10))
-    debt_gdp_scatter.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='GDP vs Total Public Debt', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Nominal GDP (KSh M)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Total Debt (KSh M)')
-    )
-    
-    # Correlation matrix
-    corr_data = merged[['Nominal_GDP', 'Real_GDP', 'GDP_Growth', 'Avg_Inflation', 'Total_Debt']].corr()
-    
-    corr_heatmap = go.Figure(data=go.Heatmap(
-        z=corr_data.values,
-        x=['Nominal GDP', 'Real GDP', 'GDP Growth', 'Inflation', 'Total Debt'],
-        y=['Nominal GDP', 'Real GDP', 'GDP Growth', 'Inflation', 'Total Debt'],
-        colorscale='RdBu_r',
-        zmid=0,
-        text=np.round(corr_data.values, 2),
-        texttemplate='%{text}',
-        textfont=dict(size=12),
-        colorbar=dict(title='Correlation')
-    ))
-    corr_heatmap.update_layout(
-        template=CHART_TEMPLATE,
-        height=450,
-        margin=dict(l=100, r=40, t=60, b=100),
-        title=dict(text='Correlation Matrix', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
-    )
-    
-    # Growth vs Inflation over time
-    dual_axis = make_subplots(specs=[[{"secondary_y": True}]])
-    dual_axis.add_trace(
-        go.Scatter(x=merged['Year'], y=merged['GDP_Growth'], 
-                  name='GDP Growth', line=dict(color=COLORS['primary'], width=2)),
-        secondary_y=False
-    )
-    dual_axis.add_trace(
-        go.Scatter(x=merged['Year'], y=merged['Avg_Inflation'],
-                  name='Inflation', line=dict(color=COLORS['quaternary'], width=2)),
-        secondary_y=True
-    )
-    dual_axis.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
-        margin=dict(l=60, r=60, t=60, b=60),
-        title=dict(text='GDP Growth vs Inflation Over Time', font=dict(size=16)),
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        hovermode='x unified'
-    )
-    dual_axis.update_xaxes(showgrid=False)
-    dual_axis.update_yaxes(title_text="GDP Growth (%)", secondary_y=False, 
-                          showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-    dual_axis.update_yaxes(title_text="Inflation (%)", secondary_y=True)
-    
-    return html.Div([
-        html.H4("Correlations & Relationships", className="mb-4", style={'color': COLORS['text']}),
-        dbc.Row([
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardBody([dcc.Graph(figure=gdp_inflation, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
-            ], md=6),
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardBody([dcc.Graph(figure=debt_gdp_scatter, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
-            ], md=6),
-        ]),
-        dbc.Row([
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardBody([dcc.Graph(figure=corr_heatmap, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
-            ], md=6),
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardBody([dcc.Graph(figure=dual_axis, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
-            ], md=6),
+        # Correlation matrix
+        corr_data = merged[['Nominal_GDP', 'Real_GDP', 'GDP_Growth', 'Avg_Inflation', 'Total_Debt']].corr()
+        
+        corr_heatmap = go.Figure(data=go.Heatmap(
+            z=corr_data.values,
+            x=['Nominal GDP', 'Real GDP', 'GDP Growth', 'Inflation', 'Total Debt'],
+            y=['Nominal GDP', 'Real GDP', 'GDP Growth', 'Inflation', 'Total Debt'],
+            colorscale='RdBu_r',
+            zmid=0,
+            text=np.round(corr_data.values, 2),
+            texttemplate='%{text}',
+            textfont=dict(size=12),
+            colorbar=dict(title='Correlation')
+        ))
+        corr_heatmap.update_layout(
+            template=CHART_TEMPLATE,
+            height=450,
+            margin=dict(l=100, r=40, t=60, b=100),
+            title=dict(text='Correlation Matrix', font=dict(size=16)),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
+        
+        # Growth vs Inflation over time
+        dual_axis = make_subplots(specs=[[{"secondary_y": True}]])
+        dual_axis.add_trace(
+            go.Scatter(x=merged['Year'], y=merged['GDP_Growth'], 
+                      name='GDP Growth', line=dict(color=COLORS['primary'], width=2)),
+            secondary_y=False
+        )
+        dual_axis.add_trace(
+            go.Scatter(x=merged['Year'], y=merged['Avg_Inflation'],
+                      name='Inflation', line=dict(color=COLORS['quaternary'], width=2)),
+            secondary_y=True
+        )
+        dual_axis.update_layout(
+            template=CHART_TEMPLATE,
+            height=350,
+            margin=dict(l=60, r=60, t=60, b=60),
+            title=dict(text='GDP Growth vs Inflation Over Time', font=dict(size=16)),
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            hovermode='x unified'
+        )
+        dual_axis.update_xaxes(showgrid=False)
+        dual_axis.update_yaxes(title_text="GDP Growth (%)", secondary_y=False, 
+                              showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+        dual_axis.update_yaxes(title_text="Inflation (%)", secondary_y=True)
+        
+        return html.Div([
+            html.H4("Correlations & Relationships", className="mb-4", style={'color': COLORS['text']}),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([dcc.Graph(figure=gdp_inflation, config={'displayModeBar': True})])
+                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], md=6),
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([dcc.Graph(figure=debt_gdp_scatter, config={'displayModeBar': True})])
+                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], md=6),
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([dcc.Graph(figure=corr_heatmap, config={'displayModeBar': True})])
+                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], md=6),
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([dcc.Graph(figure=dual_axis, config={'displayModeBar': True})])
+                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], md=6),
+            ])
         ])
-    ])
+    except Exception as e:
+        return html.Div([
+            html.H4("Correlations & Relationships", className="mb-4", style={'color': COLORS['text']}),
+            dbc.Alert(f"Error loading correlation data: {str(e)}", color="danger")
+        ])
 
 
 # ============== MAIN LAYOUT ==============
