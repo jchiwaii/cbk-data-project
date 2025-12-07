@@ -326,6 +326,7 @@ def create_gdp_tab():
     
     growth_layout = get_chart_layout(400)
     growth_layout.update(
+        margin=dict(l=40, r=80, t=40, b=40),
         title=dict(text='Annual GDP Growth Rate (%)', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title='Year',
         yaxis_title='Growth %'
@@ -343,7 +344,7 @@ def create_gdp_tab():
         fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.1)'
     ))
     
-    yoy_layout = get_chart_layout(350)
+    yoy_layout = get_chart_layout(400)
     yoy_layout.update(
         title=dict(text='Year-over-Year Nominal GDP Change (%)', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title='Year',
@@ -447,8 +448,9 @@ def create_debt_tab():
                             annotation_text="50% threshold", annotation_position="right",
                             annotation_font=dict(color=COLORS['secondary'], family=CHART_FONT))
     
-    dg_layout = get_chart_layout(350)
+    dg_layout = get_chart_layout(400)
     dg_layout.update(
+        margin=dict(l=60, r=80, t=60, b=60),
         title=dict(text='Debt-to-GDP Ratio (%)', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title='Year',
         yaxis_title='%'
@@ -529,6 +531,7 @@ def create_inflation_tab():
     
     it_layout = get_chart_layout(400)
     it_layout.update(
+        margin=dict(l=60, r=100, t=60, b=60),
         title=dict(text='Inflation Rate Over Time', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         xaxis_title=None,
@@ -580,8 +583,9 @@ def create_inflation_tab():
                         annotation_text="Upper Target (7.5%)", annotation_position="right",
                         annotation_font=dict(color=COLORS['danger'], family=CHART_FONT))
     
-    rb_layout = get_chart_layout(350)
+    rb_layout = get_chart_layout(450)
     rb_layout.update(
+        margin=dict(l=60, r=80, t=60, b=60),
         title=dict(text='Last 12 Months Inflation', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title=None,
         xaxis=dict(tickangle=-45),
@@ -685,7 +689,7 @@ def create_fiscal_tab():
     ))
     balance_chart.add_hline(y=0, line_color='white', line_width=1)
     
-    bc_layout = get_chart_layout(350)
+    bc_layout = get_chart_layout(500)
     bc_layout.update(
         title=dict(text='Budget Balance (Surplus/Deficit)', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title='Fiscal Year',
@@ -707,7 +711,7 @@ def create_fiscal_tab():
         textfont=dict(family=CHART_FONT)
     )])
     
-    tp_layout = get_chart_layout(350)
+    tp_layout = get_chart_layout(500)
     tp_layout.update(
         margin=dict(l=20, r=20, t=60, b=20),
         title=dict(text=f'Tax Revenue Composition (FY{int(latest_fiscal["Fiscal_Year_End"])})', font=dict(size=16, family=TITLE_FONT)),
@@ -870,7 +874,7 @@ def create_correlations_tab():
             secondary_y=True
         )
         
-        da_layout = get_chart_layout(350)
+        da_layout = get_chart_layout(450)
         da_layout.update(
             margin=dict(l=60, r=60, t=60, b=60),
             title=dict(text='GDP Growth vs Inflation Over Time', font=dict(size=16, family=TITLE_FONT)),
