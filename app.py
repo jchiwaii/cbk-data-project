@@ -26,21 +26,56 @@ app = dash.Dash(
 )
 app.title = "Kenya Economic Dashboard | CBK Data"
 
-# Color palette
+# Color palette - Matching CSS variables
 COLORS = {
-    'primary': '#00A86B',      # CBK Green
-    'secondary': '#FFD700',    # Gold accent
-    'tertiary': '#1E90FF',     # Blue
-    'quaternary': '#FF6B6B',   # Coral red
-    'background': '#1a1a2e',
-    'card': '#16213e',
-    'text': '#e8e8e8',
-    'muted': '#8892b0'
+    'primary': '#00F2EA',      # Cyan
+    'secondary': '#FF0055',    # Neon Pink
+    'tertiary': '#FFE600',     # Electric Yellow
+    'quaternary': '#7000FF',   # Deep Violet
+    'background': '#05050A',   # Deep dark
+    'card': 'rgba(18, 18, 28, 0.6)', # Glass
+    'text': '#FFFFFF',
+    'muted': '#A0A0B0',
+    'success': '#00F2EA',
+    'danger': '#FF0055'
 }
 
-CHART_COLORS = ['#00A86B', '#FFD700', '#1E90FF', '#FF6B6B', '#9B59B6', '#E67E22', '#1ABC9C', '#E74C3C']
+CHART_COLORS = ['#00F2EA', '#FF0055', '#FFE600', '#7000FF', '#00B8FF', '#FF9F00', '#00FF9D', '#D900FF']
 
-# Chart template
+# Chart template configuration
+CHART_FONT = "JetBrains Mono"
+TITLE_FONT = "Space Grotesk"
+
+def get_chart_layout(height=400):
+    """Get common chart layout configuration"""
+    return dict(
+        template='plotly_dark',
+        height=height,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(family=CHART_FONT, size=12, color=COLORS['muted']),
+        title=dict(font=dict(family=TITLE_FONT, size=18, color=COLORS['text'])),
+        margin=dict(l=60, r=40, t=60, b=60),
+        xaxis=dict(
+            showgrid=False, 
+            zeroline=False,
+            title_font=dict(family=TITLE_FONT),
+            tickfont=dict(family=CHART_FONT)
+        ),
+        yaxis=dict(
+            showgrid=True, 
+            gridcolor='rgba(255,255,255,0.08)', 
+            zeroline=False,
+            title_font=dict(family=TITLE_FONT),
+            tickfont=dict(family=CHART_FONT)
+        ),
+        hoverlabel=dict(
+            bgcolor=COLORS['background'],
+            bordercolor=COLORS['primary'],
+            font=dict(family=CHART_FONT)
+        )
+    )
+
 CHART_TEMPLATE = 'plotly_dark'
 
 
@@ -69,12 +104,12 @@ def create_kpi_card(title, value, subtitle="", icon="", color=COLORS['primary'])
         dbc.CardBody([
             html.Div([
                 html.I(className=f"fas {icon} fa-2x", style={'color': color}),
-            ], className="mb-2"),
-            html.H6(title, className="text-muted mb-1", style={'fontSize': '0.85rem'}),
-            html.H3(value, className="mb-1", style={'color': color, 'fontWeight': '700'}),
-            html.P(subtitle, className="text-muted mb-0", style={'fontSize': '0.75rem'})
-        ], className="text-center py-3")
-    ], className="h-100 border-0", style={'backgroundColor': COLORS['card']})
+            ], className="kpi-card-icon mb-3"),
+            html.H6(title, className="text-muted mb-2", style={'fontSize': '0.85rem', 'fontFamily': 'Space Grotesk'}),
+            html.H3(value, className="mb-2 kpi-value", style={'color': color, 'fontWeight': '700'}),
+            html.P(subtitle, className="text-muted mb-0", style={'fontSize': '0.75rem', 'fontFamily': 'Inter'})
+        ], className="text-center py-4")
+    ], className="h-100 border-0 glass-card")
 
 
 # ============== OVERVIEW TAB ==============
@@ -134,39 +169,38 @@ def create_overview_tab():
     gdp_fig.add_trace(go.Scatter(
         x=gdp_data['Year'], y=gdp_data['Nominal_GDP'],
         mode='lines+markers', name='Nominal GDP',
-        line=dict(color=COLORS['primary'], width=2),
-        marker=dict(size=4)
+        line=dict(color=COLORS['primary'], width=3),
+        marker=dict(size=6, color=COLORS['background'], line=dict(color=COLORS['primary'], width=2))
     ))
-    gdp_fig.update_layout(
-        template=CHART_TEMPLATE,
-        height=250,
+    
+    layout = get_chart_layout(250)
+    layout.update(
         margin=dict(l=40, r=20, t=40, b=40),
         title=dict(text='GDP Trend', font=dict(size=14)),
         showlegend=False,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.08)', title=None)
     )
+    gdp_fig.update_layout(**layout)
     
     # Debt composition mini chart
     latest_debt = debt_data.iloc[-1]
     debt_pie = go.Figure(data=[go.Pie(
         labels=['Domestic', 'External'],
         values=[latest_debt['Domestic_Debt'], latest_debt['External_Debt']],
-        hole=0.6,
-        marker_colors=[COLORS['primary'], COLORS['tertiary']]
+        hole=0.7,
+        marker_colors=[COLORS['primary'], COLORS['tertiary']],
+        textfont=dict(family=CHART_FONT)
     )])
-    debt_pie.update_layout(
-        template=CHART_TEMPLATE,
-        height=250,
+    
+    pie_layout = get_chart_layout(250)
+    pie_layout.update(
         margin=dict(l=20, r=20, t=40, b=20),
-        title=dict(text=f'Debt Composition ({latest_debt["Date"].strftime("%b %Y")})', font=dict(size=14)),
+        title=dict(text=f'Debt Composition', font=dict(size=14)),
         showlegend=True,
-        legend=dict(orientation='h', yanchor='bottom', y=-0.1),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        legend=dict(orientation='h', yanchor='bottom', y=-0.2),
+        xaxis=None, yaxis=None
     )
+    debt_pie.update_layout(**pie_layout)
     
     # Inflation trend mini chart - sort by date descending and take last 36 months
     inflation_sorted = inflation_data.sort_values('Date', ascending=False)
@@ -175,71 +209,68 @@ def create_overview_tab():
     inflation_fig.add_trace(go.Scatter(
         x=inflation_recent['Date'], y=inflation_recent['12_Month_Inflation'],
         mode='lines', name='Inflation',
-        line=dict(color=COLORS['secondary'], width=2),
-        fill='tozeroy', fillcolor=f"rgba(255, 215, 0, 0.1)"
+        line=dict(color=COLORS['secondary'], width=3),
+        fill='tozeroy', fillcolor=f"rgba(255, 0, 85, 0.1)"
     ))
     # Add target band
-    inflation_fig.add_hline(y=5, line_dash="dash", line_color=COLORS['primary'], 
-                           annotation_text="Target", annotation_position="right")
-    inflation_fig.update_layout(
-        template=CHART_TEMPLATE,
-        height=250,
+    inflation_fig.add_hline(y=5, line_dash="dash", line_color=COLORS['success'], 
+                           annotation_text="Target", annotation_position="right",
+                           annotation_font=dict(color=COLORS['success'], family=CHART_FONT))
+    
+    inf_layout = get_chart_layout(250)
+    inf_layout.update(
         margin=dict(l=40, r=20, t=40, b=40),
         title=dict(text='Inflation Trend (3Y)', font=dict(size=14)),
         showlegend=False,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='%')
+        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.08)', title='%')
     )
+    inflation_fig.update_layout(**inf_layout)
     
     # GDP Growth bar chart
     growth_fig = go.Figure()
-    colors = [COLORS['primary'] if x >= 0 else COLORS['quaternary'] for x in gdp_data['GDP_Growth']]
+    colors = [COLORS['primary'] if x >= 0 else COLORS['danger'] for x in gdp_data['GDP_Growth']]
     growth_fig.add_trace(go.Bar(
         x=gdp_data['Year'], y=gdp_data['GDP_Growth'],
-        marker_color=colors
+        marker_color=colors,
+        marker_line_width=0
     ))
-    growth_fig.update_layout(
-        template=CHART_TEMPLATE,
-        height=250,
+    
+    growth_layout = get_chart_layout(250)
+    growth_layout.update(
         margin=dict(l=40, r=20, t=40, b=40),
         title=dict(text='GDP Growth Rate (%)', font=dict(size=14)),
-        showlegend=False,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+        showlegend=False
     )
+    growth_fig.update_layout(**growth_layout)
     
     charts_row = dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([dcc.Graph(figure=gdp_fig, config={'displayModeBar': False})])
-            ], className="border-0", style={'backgroundColor': COLORS['card']})
-        ], md=6, className="mb-3"),
+            ], className="border-0 glass-card")
+        ], md=6, className="mb-4"),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([dcc.Graph(figure=debt_pie, config={'displayModeBar': False})])
-            ], className="border-0", style={'backgroundColor': COLORS['card']})
-        ], md=6, className="mb-3"),
+            ], className="border-0 glass-card")
+        ], md=6, className="mb-4"),
     ])
     
     charts_row2 = dbc.Row([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([dcc.Graph(figure=inflation_fig, config={'displayModeBar': False})])
-            ], className="border-0", style={'backgroundColor': COLORS['card']})
-        ], md=6, className="mb-3"),
+            ], className="border-0 glass-card")
+        ], md=6, className="mb-4"),
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([dcc.Graph(figure=growth_fig, config={'displayModeBar': False})])
-            ], className="border-0", style={'backgroundColor': COLORS['card']})
-        ], md=6, className="mb-3"),
+            ], className="border-0 glass-card")
+        ], md=6, className="mb-4"),
     ])
     
     return html.Div([
-        html.H4("Economic Overview", className="mb-4", style={'color': COLORS['text']}),
+        html.H4("Economic Overview", className="mb-4 gradient-text", style={'color': COLORS['text']}),
         kpi_row,
         charts_row,
         charts_row2
@@ -257,51 +288,49 @@ def create_gdp_tab():
         x=gdp_data['Year'], y=gdp_data['Nominal_GDP'],
         mode='lines+markers', name='Nominal GDP',
         line=dict(color=COLORS['primary'], width=3),
-        marker=dict(size=8)
+        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['primary'], width=2))
     ))
     gdp_comparison.add_trace(go.Scatter(
         x=gdp_data['Year'], y=gdp_data['Real_GDP'],
         mode='lines+markers', name='Real GDP',
         line=dict(color=COLORS['tertiary'], width=3),
-        marker=dict(size=8)
+        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['tertiary'], width=2))
     ))
-    gdp_comparison.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Nominal vs Real GDP (KSh Million)', font=dict(size=16)),
+    
+    layout = get_chart_layout(400)
+    layout.update(
+        title=dict(text='Nominal vs Real GDP (KSh Million)', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='KSh Million'),
+        xaxis_title='Year',
+        yaxis_title='KSh Million',
         hovermode='x unified'
     )
+    gdp_comparison.update_layout(**layout)
     
     # GDP Growth Rate chart
-    growth_colors = [COLORS['primary'] if x >= 0 else COLORS['quaternary'] for x in gdp_data['GDP_Growth']]
+    growth_colors = [COLORS['primary'] if x >= 0 else COLORS['danger'] for x in gdp_data['GDP_Growth']]
     growth_chart = go.Figure()
     growth_chart.add_trace(go.Bar(
         x=gdp_data['Year'], y=gdp_data['GDP_Growth'],
         marker_color=growth_colors,
         text=[f"{x:.1f}%" for x in gdp_data['GDP_Growth']],
-        textposition='outside'
+        textposition='outside',
+        textfont=dict(family=CHART_FONT)
     ))
     growth_chart.add_hline(y=0, line_color='white', line_width=1)
     growth_chart.add_hline(y=gdp_data['GDP_Growth'].mean(), line_dash="dash", 
                           line_color=COLORS['secondary'],
                           annotation_text=f"Avg: {gdp_data['GDP_Growth'].mean():.1f}%",
-                          annotation_position="right")
-    growth_chart.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Annual GDP Growth Rate (%)', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Growth %')
+                          annotation_position="right",
+                          annotation_font=dict(color=COLORS['secondary'], family=CHART_FONT))
+    
+    growth_layout = get_chart_layout(400)
+    growth_layout.update(
+        title=dict(text='Annual GDP Growth Rate (%)', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title='Year',
+        yaxis_title='Growth %'
     )
+    growth_chart.update_layout(**growth_layout)
     
     # YoY Change calculation
     gdp_data['YoY_Change'] = gdp_data['Nominal_GDP'].pct_change() * 100
@@ -309,39 +338,38 @@ def create_gdp_tab():
     yoy_chart.add_trace(go.Scatter(
         x=gdp_data['Year'], y=gdp_data['YoY_Change'],
         mode='lines+markers', name='YoY Change',
-        line=dict(color=COLORS['secondary'], width=2),
-        fill='tozeroy', fillcolor='rgba(255, 215, 0, 0.2)'
+        line=dict(color=COLORS['secondary'], width=3),
+        marker=dict(size=6, color=COLORS['background'], line=dict(color=COLORS['secondary'], width=2)),
+        fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.1)'
     ))
-    yoy_chart.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Year-over-Year Nominal GDP Change (%)', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='% Change')
+    
+    yoy_layout = get_chart_layout(350)
+    yoy_layout.update(
+        title=dict(text='Year-over-Year Nominal GDP Change (%)', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title='Year',
+        yaxis_title='% Change'
     )
+    yoy_chart.update_layout(**yoy_layout)
     
     return html.Div([
-        html.H4("GDP Analysis", className="mb-4", style={'color': COLORS['text']}),
+        html.H4("GDP Analysis", className="mb-4 gradient-text", style={'color': COLORS['text']}),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=gdp_comparison, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=12),
         ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=growth_chart, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=6),
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=yoy_chart, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=6),
         ])
     ])
@@ -359,27 +387,25 @@ def create_debt_tab():
     debt_area.add_trace(go.Scatter(
         x=debt_data['Date'], y=debt_data['Domestic_Debt'],
         mode='lines', name='Domestic Debt',
-        stackgroup='one', fillcolor=f"rgba(0, 168, 107, 0.7)",
-        line=dict(color=COLORS['primary'], width=0.5)
+        stackgroup='one', fillcolor=f"rgba(0, 242, 234, 0.1)",
+        line=dict(color=COLORS['primary'], width=1)
     ))
     debt_area.add_trace(go.Scatter(
         x=debt_data['Date'], y=debt_data['External_Debt'],
         mode='lines', name='External Debt',
-        stackgroup='one', fillcolor=f"rgba(30, 144, 255, 0.7)",
-        line=dict(color=COLORS['tertiary'], width=0.5)
+        stackgroup='one', fillcolor=f"rgba(255, 230, 0, 0.1)",
+        line=dict(color=COLORS['tertiary'], width=1)
     ))
-    debt_area.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Public Debt Composition Over Time (KSh Million)', font=dict(size=16)),
+    
+    layout = get_chart_layout(400)
+    layout.update(
+        title=dict(text='Public Debt Composition Over Time (KSh Million)', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title=''),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='KSh Million'),
+        xaxis_title=None,
+        yaxis_title='KSh Million',
         hovermode='x unified'
     )
+    debt_area.update_layout(**layout)
     
     # Latest debt composition by instrument
     latest_dom = dom_debt.iloc[-1]
@@ -395,17 +421,18 @@ def create_debt_tab():
     instrument_pie = go.Figure(data=[go.Pie(
         labels=labels, values=values,
         hole=0.5,
-        marker_colors=CHART_COLORS[:len(labels)]
+        marker_colors=CHART_COLORS[:len(labels)],
+        textfont=dict(family=CHART_FONT)
     )])
-    instrument_pie.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
+    
+    pie_layout = get_chart_layout(400)
+    pie_layout.update(
         margin=dict(l=20, r=20, t=60, b=20),
-        title=dict(text=f'Domestic Debt by Instrument ({latest_dom["Date"].strftime("%b %Y")})', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='v', yanchor='middle', y=0.5, xanchor='left', x=1.05)
+        title=dict(text=f'Domestic Debt by Instrument ({latest_dom["Date"].strftime("%b %Y")})', font=dict(size=16, family=TITLE_FONT)),
+        legend=dict(orientation='v', yanchor='middle', y=0.5, xanchor='left', x=1.05),
+        xaxis=None, yaxis=None
     )
+    instrument_pie.update_layout(**pie_layout)
     
     # Debt to GDP ratio
     debt_gdp_chart = go.Figure()
@@ -413,66 +440,64 @@ def create_debt_tab():
         x=debt_gdp['Year'], y=debt_gdp['Debt_to_GDP'],
         mode='lines+markers', name='Debt/GDP',
         line=dict(color=COLORS['quaternary'], width=3),
-        marker=dict(size=8),
-        fill='tozeroy', fillcolor='rgba(255, 107, 107, 0.2)'
+        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['quaternary'], width=2)),
+        fill='tozeroy', fillcolor='rgba(112, 0, 255, 0.1)'
     ))
     debt_gdp_chart.add_hline(y=50, line_dash="dash", line_color=COLORS['secondary'],
-                            annotation_text="50% threshold", annotation_position="right")
-    debt_gdp_chart.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Debt-to-GDP Ratio (%)', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='%')
+                            annotation_text="50% threshold", annotation_position="right",
+                            annotation_font=dict(color=COLORS['secondary'], family=CHART_FONT))
+    
+    dg_layout = get_chart_layout(350)
+    dg_layout.update(
+        title=dict(text='Debt-to-GDP Ratio (%)', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title='Year',
+        yaxis_title='%'
     )
+    debt_gdp_chart.update_layout(**dg_layout)
     
     # Total debt trend
     total_debt_chart = go.Figure()
     total_debt_chart.add_trace(go.Scatter(
         x=debt_data['Date'], y=debt_data['Total_Debt'],
         mode='lines', name='Total Debt',
-        line=dict(color=COLORS['secondary'], width=2)
+        line=dict(color=COLORS['secondary'], width=3),
+        fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.05)'
     ))
-    total_debt_chart.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Total Public Debt Trend', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='KSh Million')
+    
+    td_layout = get_chart_layout(350)
+    td_layout.update(
+        title=dict(text='Total Public Debt Trend', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title=None,
+        yaxis_title='KSh Million'
     )
+    total_debt_chart.update_layout(**td_layout)
     
     return html.Div([
-        html.H4("Debt Analysis", className="mb-4", style={'color': COLORS['text']}),
+        html.H4("Debt Analysis", className="mb-4 gradient-text", style={'color': COLORS['text']}),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=debt_area, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=12),
         ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=instrument_pie, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=6),
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=debt_gdp_chart, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=6),
         ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=total_debt_chart, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=12),
         ])
     ])
@@ -497,21 +522,20 @@ def create_inflation_tab():
     ))
     # Target band
     inflation_trend.add_hrect(y0=2.5, y1=7.5, line_width=0, 
-                             fillcolor="rgba(0, 168, 107, 0.1)",
+                             fillcolor="rgba(0, 242, 234, 0.05)",
                              annotation_text="CBK Target (2.5-7.5%)", 
-                             annotation_position="top right")
-    inflation_trend.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Inflation Rate Over Time', font=dict(size=16)),
+                             annotation_position="top right",
+                             annotation_font=dict(color=COLORS['success'], family=CHART_FONT))
+    
+    it_layout = get_chart_layout(400)
+    it_layout.update(
+        title=dict(text='Inflation Rate Over Time', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title=''),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Inflation Rate (%)'),
+        xaxis_title=None,
+        yaxis_title='Inflation Rate (%)',
         hovermode='x unified'
     )
+    inflation_trend.update_layout(**it_layout)
     
     # Inflation heatmap by month/year
     inflation_pivot = inflation_data.pivot_table(
@@ -526,19 +550,19 @@ def create_inflation_tab():
         z=inflation_pivot.values,
         x=inflation_pivot.columns,
         y=inflation_pivot.index,
-        colorscale='RdYlGn_r',
-        colorbar=dict(title='%')
+        colorscale='Viridis',
+        colorbar=dict(title='%', titlefont=dict(family=CHART_FONT), tickfont=dict(family=CHART_FONT))
     ))
-    heatmap.update_layout(
-        template=CHART_TEMPLATE,
-        height=450,
+    
+    hm_layout = get_chart_layout(450)
+    hm_layout.update(
         margin=dict(l=100, r=40, t=60, b=60),
-        title=dict(text='Monthly Inflation Heatmap by Year', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(title='Year'),
-        yaxis=dict(title='Month', autorange='reversed')
+        title=dict(text='Monthly Inflation Heatmap by Year', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title='Year',
+        yaxis_title=None,
+        yaxis=dict(autorange='reversed')
     )
+    heatmap.update_layout(**hm_layout)
     
     # Recent inflation stats - get last 12 months by date
     inflation_sorted = inflation_data.sort_values('Date', ascending=False)
@@ -546,43 +570,44 @@ def create_inflation_tab():
     recent_bar = go.Figure()
     recent_bar.add_trace(go.Bar(
         x=recent_inflation['Date'], y=recent_inflation['12_Month_Inflation'],
-        marker_color=[COLORS['primary'] if v <= 7.5 else COLORS['quaternary'] 
+        marker_color=[COLORS['primary'] if v <= 7.5 else COLORS['danger'] 
                      for v in recent_inflation['12_Month_Inflation']],
         text=[f"{v:.1f}%" for v in recent_inflation['12_Month_Inflation']],
-        textposition='outside'
+        textposition='outside',
+        textfont=dict(family=CHART_FONT)
     ))
-    recent_bar.add_hline(y=7.5, line_dash="dash", line_color=COLORS['quaternary'],
-                        annotation_text="Upper Target (7.5%)", annotation_position="right")
-    recent_bar.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Last 12 Months Inflation', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, tickangle=-45),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='%')
+    recent_bar.add_hline(y=7.5, line_dash="dash", line_color=COLORS['danger'],
+                        annotation_text="Upper Target (7.5%)", annotation_position="right",
+                        annotation_font=dict(color=COLORS['danger'], family=CHART_FONT))
+    
+    rb_layout = get_chart_layout(350)
+    rb_layout.update(
+        title=dict(text='Last 12 Months Inflation', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title=None,
+        xaxis=dict(tickangle=-45),
+        yaxis_title='%'
     )
+    recent_bar.update_layout(**rb_layout)
     
     return html.Div([
-        html.H4("Inflation Analysis", className="mb-4", style={'color': COLORS['text']}),
+        html.H4("Inflation Analysis", className="mb-4 gradient-text", style={'color': COLORS['text']}),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=inflation_trend, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=12),
         ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=heatmap, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=7),
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=recent_bar, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=5),
         ])
     ])
@@ -606,20 +631,18 @@ def create_fiscal_tab():
         x=fiscal_summary['Fiscal_Year_End'], 
         y=fiscal_summary['Total_Expenditure'],
         name='Expenditure',
-        marker_color=COLORS['quaternary']
+        marker_color=COLORS['danger']
     ))
-    rev_exp.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Annual Revenue vs Expenditure (Fiscal Year End - June)', font=dict(size=16)),
+    
+    re_layout = get_chart_layout(400)
+    re_layout.update(
+        title=dict(text='Annual Revenue vs Expenditure (Fiscal Year End - June)', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Fiscal Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='KSh Million'),
+        xaxis_title='Fiscal Year',
+        yaxis_title='KSh Million',
         barmode='group'
     )
+    rev_exp.update_layout(**re_layout)
     
     # Revenue breakdown stacked bar
     revenue_breakdown = go.Figure()
@@ -636,22 +659,20 @@ def create_fiscal_tab():
             name=label,
             marker_color=CHART_COLORS[i]
         ))
-    revenue_breakdown.update_layout(
-        template=CHART_TEMPLATE,
-        height=400,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Revenue Breakdown by Source', font=dict(size=16)),
+    
+    rb_layout = get_chart_layout(400)
+    rb_layout.update(
+        title=dict(text='Revenue Breakdown by Source', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Fiscal Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='KSh Million'),
+        xaxis_title='Fiscal Year',
+        yaxis_title='KSh Million',
         barmode='stack'
     )
+    revenue_breakdown.update_layout(**rb_layout)
     
     # Budget deficit/surplus trend
     fiscal_summary['Budget_Balance'] = fiscal_summary['Total_Revenue'] - fiscal_summary['Total_Expenditure']
-    balance_colors = [COLORS['primary'] if x >= 0 else COLORS['quaternary'] for x in fiscal_summary['Budget_Balance']]
+    balance_colors = [COLORS['primary'] if x >= 0 else COLORS['danger'] for x in fiscal_summary['Budget_Balance']]
     
     balance_chart = go.Figure()
     balance_chart.add_trace(go.Bar(
@@ -659,19 +680,18 @@ def create_fiscal_tab():
         y=fiscal_summary['Budget_Balance'],
         marker_color=balance_colors,
         text=[f"{x/1e6:.0f}T" for x in fiscal_summary['Budget_Balance']],
-        textposition='outside'
+        textposition='outside',
+        textfont=dict(family=CHART_FONT)
     ))
     balance_chart.add_hline(y=0, line_color='white', line_width=1)
-    balance_chart.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
-        margin=dict(l=60, r=40, t=60, b=60),
-        title=dict(text='Budget Balance (Surplus/Deficit)', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(showgrid=False, title='Fiscal Year'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='KSh Million')
+    
+    bc_layout = get_chart_layout(350)
+    bc_layout.update(
+        title=dict(text='Budget Balance (Surplus/Deficit)', font=dict(size=16, family=TITLE_FONT)),
+        xaxis_title='Fiscal Year',
+        yaxis_title='KSh Million'
     )
+    balance_chart.update_layout(**bc_layout)
     
     # Tax revenue composition pie
     latest_fiscal = fiscal_summary.iloc[-1]
@@ -683,43 +703,44 @@ def create_fiscal_tab():
     tax_pie = go.Figure(data=[go.Pie(
         labels=tax_labels, values=tax_values,
         hole=0.5,
-        marker_colors=CHART_COLORS[:len(tax_labels)]
+        marker_colors=CHART_COLORS[:len(tax_labels)],
+        textfont=dict(family=CHART_FONT)
     )])
-    tax_pie.update_layout(
-        template=CHART_TEMPLATE,
-        height=350,
+    
+    tp_layout = get_chart_layout(350)
+    tp_layout.update(
         margin=dict(l=20, r=20, t=60, b=20),
-        title=dict(text=f'Tax Revenue Composition (FY{int(latest_fiscal["Fiscal_Year_End"])})', font=dict(size=16)),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        title=dict(text=f'Tax Revenue Composition (FY{int(latest_fiscal["Fiscal_Year_End"])})', font=dict(size=16, family=TITLE_FONT)),
+        xaxis=None, yaxis=None
     )
+    tax_pie.update_layout(**tp_layout)
     
     return html.Div([
-        html.H4("Fiscal Analysis", className="mb-4", style={'color': COLORS['text']}),
+        html.H4("Fiscal Analysis", className="mb-4 gradient-text", style={'color': COLORS['text']}),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=rev_exp, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=12),
         ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=revenue_breakdown, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=12),
         ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=balance_chart, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=7),
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([dcc.Graph(figure=tax_pie, config={'displayModeBar': True})])
-                ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                ], className="border-0 mb-4 glass-card")
             ], md=5),
         ])
     ])
@@ -758,9 +779,9 @@ def create_correlations_tab():
             marker=dict(
                 size=merged['GDP_Growth_Size'] * 3,
                 color=merged['Year'],
-                colorscale='viridis',
+                colorscale='Viridis',
                 showscale=True,
-                colorbar=dict(title='Year')
+                colorbar=dict(title='Year', titlefont=dict(family=CHART_FONT), tickfont=dict(family=CHART_FONT))
             ),
             text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['Nominal_GDP']:,.0f}<br>Inflation: {r['Avg_Inflation']:.1f}%<br>Growth: {r['GDP_Growth']:.1f}%", axis=1),
             hovertemplate='%{text}<extra></extra>'
@@ -772,20 +793,18 @@ def create_correlations_tab():
         gdp_inflation.add_trace(go.Scatter(
             x=x_line, y=p(x_line),
             mode='lines',
-            line=dict(color='rgba(255,255,255,0.5)', dash='dash'),
+            line=dict(color='rgba(255,255,255,0.3)', dash='dash'),
             name='Trend',
             showlegend=False
         ))
-        gdp_inflation.update_layout(
-            template=CHART_TEMPLATE,
-            height=400,
-            margin=dict(l=60, r=40, t=60, b=60),
-            title=dict(text='GDP vs Inflation (sized by growth rate)', font=dict(size=16)),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Nominal GDP (KSh M)'),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Avg Inflation (%)')
+        
+        gi_layout = get_chart_layout(400)
+        gi_layout.update(
+            title=dict(text='GDP vs Inflation (sized by growth rate)', font=dict(size=16, family=TITLE_FONT)),
+            xaxis_title='Nominal GDP (KSh M)',
+            yaxis_title='Avg Inflation (%)'
         )
+        gdp_inflation.update_layout(**gi_layout)
         
         # Debt vs GDP scatter
         debt_gdp_scatter = go.Figure()
@@ -793,7 +812,7 @@ def create_correlations_tab():
             x=merged['Nominal_GDP'], 
             y=merged['Total_Debt'],
             mode='markers',
-            marker=dict(color=COLORS['tertiary'], size=12),
+            marker=dict(color=COLORS['tertiary'], size=12, line=dict(color=COLORS['background'], width=1)),
             text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['Nominal_GDP']:,.0f}<br>Debt: {r['Total_Debt']:,.0f}", axis=1),
             hovertemplate='%{text}<extra></extra>'
         ))
@@ -803,20 +822,18 @@ def create_correlations_tab():
         debt_gdp_scatter.add_trace(go.Scatter(
             x=x_line, y=p2(x_line),
             mode='lines',
-            line=dict(color='rgba(255,255,255,0.5)', dash='dash'),
+            line=dict(color='rgba(255,255,255,0.3)', dash='dash'),
             name='Trend',
             showlegend=False
         ))
-        debt_gdp_scatter.update_layout(
-            template=CHART_TEMPLATE,
-            height=400,
-            margin=dict(l=60, r=40, t=60, b=60),
-            title=dict(text='GDP vs Total Public Debt', font=dict(size=16)),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Nominal GDP (KSh M)'),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', title='Total Debt (KSh M)')
+        
+        dg_layout = get_chart_layout(400)
+        dg_layout.update(
+            title=dict(text='GDP vs Total Public Debt', font=dict(size=16, family=TITLE_FONT)),
+            xaxis_title='Nominal GDP (KSh M)',
+            yaxis_title='Total Debt (KSh M)'
         )
+        debt_gdp_scatter.update_layout(**dg_layout)
     
         # Correlation matrix
         corr_data = merged[['Nominal_GDP', 'Real_GDP', 'GDP_Growth', 'Avg_Inflation', 'Total_Debt']].corr()
@@ -829,75 +846,76 @@ def create_correlations_tab():
             zmid=0,
             text=np.round(corr_data.values, 2),
             texttemplate='%{text}',
-            textfont=dict(size=12),
-            colorbar=dict(title='Correlation')
+            textfont=dict(size=12, family=CHART_FONT),
+            colorbar=dict(title='Correlation', titlefont=dict(family=CHART_FONT), tickfont=dict(family=CHART_FONT))
         ))
-        corr_heatmap.update_layout(
-            template=CHART_TEMPLATE,
-            height=450,
+        
+        ch_layout = get_chart_layout(450)
+        ch_layout.update(
             margin=dict(l=100, r=40, t=60, b=100),
-            title=dict(text='Correlation Matrix', font=dict(size=16)),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)'
+            title=dict(text='Correlation Matrix', font=dict(size=16, family=TITLE_FONT))
         )
+        corr_heatmap.update_layout(**ch_layout)
         
         # Growth vs Inflation over time
         dual_axis = make_subplots(specs=[[{"secondary_y": True}]])
         dual_axis.add_trace(
             go.Scatter(x=merged['Year'], y=merged['GDP_Growth'], 
-                      name='GDP Growth', line=dict(color=COLORS['primary'], width=2)),
+                      name='GDP Growth', line=dict(color=COLORS['primary'], width=3)),
             secondary_y=False
         )
         dual_axis.add_trace(
             go.Scatter(x=merged['Year'], y=merged['Avg_Inflation'],
-                      name='Inflation', line=dict(color=COLORS['quaternary'], width=2)),
+                      name='Inflation', line=dict(color=COLORS['secondary'], width=3)),
             secondary_y=True
         )
-        dual_axis.update_layout(
-            template=CHART_TEMPLATE,
-            height=350,
+        
+        da_layout = get_chart_layout(350)
+        da_layout.update(
             margin=dict(l=60, r=60, t=60, b=60),
-            title=dict(text='GDP Growth vs Inflation Over Time', font=dict(size=16)),
+            title=dict(text='GDP Growth vs Inflation Over Time', font=dict(size=16, family=TITLE_FONT)),
             legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
             hovermode='x unified'
         )
-        dual_axis.update_xaxes(showgrid=False)
+        dual_axis.update_layout(**da_layout)
+        
+        dual_axis.update_xaxes(showgrid=False, title_font=dict(family=TITLE_FONT), tickfont=dict(family=CHART_FONT))
         dual_axis.update_yaxes(title_text="GDP Growth (%)", secondary_y=False, 
-                              showgrid=True, gridcolor='rgba(255,255,255,0.1)')
-        dual_axis.update_yaxes(title_text="Inflation (%)", secondary_y=True)
+                              showgrid=True, gridcolor='rgba(255,255,255,0.1)',
+                              title_font=dict(family=TITLE_FONT), tickfont=dict(family=CHART_FONT))
+        dual_axis.update_yaxes(title_text="Inflation (%)", secondary_y=True,
+                              title_font=dict(family=TITLE_FONT), tickfont=dict(family=CHART_FONT))
         
         return html.Div([
-            html.H4("Correlations & Relationships", className="mb-4", style={'color': COLORS['text']}),
+            html.H4("Correlations & Relationships", className="mb-4 gradient-text", style={'color': COLORS['text']}),
             dbc.Row([
                 dbc.Col([
                     dbc.Card([
                         dbc.CardBody([dcc.Graph(figure=gdp_inflation, config={'displayModeBar': True})])
-                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                    ], className="border-0 mb-4 glass-card")
                 ], md=6),
                 dbc.Col([
                     dbc.Card([
                         dbc.CardBody([dcc.Graph(figure=debt_gdp_scatter, config={'displayModeBar': True})])
-                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                    ], className="border-0 mb-4 glass-card")
                 ], md=6),
             ]),
             dbc.Row([
                 dbc.Col([
                     dbc.Card([
                         dbc.CardBody([dcc.Graph(figure=corr_heatmap, config={'displayModeBar': True})])
-                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                    ], className="border-0 mb-4 glass-card")
                 ], md=6),
                 dbc.Col([
                     dbc.Card([
                         dbc.CardBody([dcc.Graph(figure=dual_axis, config={'displayModeBar': True})])
-                    ], className="border-0 mb-3", style={'backgroundColor': COLORS['card']})
+                    ], className="border-0 mb-4 glass-card")
                 ], md=6),
             ])
         ])
     except Exception as e:
         return html.Div([
-            html.H4("Correlations & Relationships", className="mb-4", style={'color': COLORS['text']}),
+            html.H4("Correlations & Relationships", className="mb-4 gradient-text", style={'color': COLORS['text']}),
             dbc.Alert(f"Error loading correlation data: {str(e)}", color="danger")
         ])
 
@@ -908,43 +926,31 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Div([
-                html.H2("Kenya Economic Dashboard", 
-                       className="mb-0", 
-                       style={'color': COLORS['primary'], 'fontWeight': '700'}),
+                html.H1("Kenya Economic Dashboard", 
+                       className="mb-1 header-title", 
+                       style={'fontWeight': '700'}),
                 html.P("Central Bank of Kenya Data Analysis", 
-                      className="text-muted mb-0",
+                      className="text-muted mb-0 font-mono",
                       style={'fontSize': '0.9rem'})
-            ], className="py-3")
+            ], className="py-4")
         ], md=8),
         dbc.Col([
             html.Div([
                 html.Span("Data Source: ", className="text-muted"),
                 html.Span("CBK", style={'color': COLORS['primary'], 'fontWeight': '600'})
-            ], className="text-end py-3")
+            ], className="text-end py-4 font-mono")
         ], md=4)
-    ], className="border-bottom mb-4", style={'borderColor': f'{COLORS["primary"]}40 !important'}),
+    ], className="border-bottom mb-4", style={'borderColor': 'rgba(255,255,255,0.1)'}),
     
     # Tabs
     dbc.Tabs([
-        dbc.Tab(label="Overview", tab_id="overview", 
-               label_style={'color': COLORS['muted']},
-               active_label_style={'color': COLORS['primary'], 'fontWeight': '600'}),
-        dbc.Tab(label="GDP Analysis", tab_id="gdp",
-               label_style={'color': COLORS['muted']},
-               active_label_style={'color': COLORS['primary'], 'fontWeight': '600'}),
-        dbc.Tab(label="Debt Analysis", tab_id="debt",
-               label_style={'color': COLORS['muted']},
-               active_label_style={'color': COLORS['primary'], 'fontWeight': '600'}),
-        dbc.Tab(label="Inflation", tab_id="inflation",
-               label_style={'color': COLORS['muted']},
-               active_label_style={'color': COLORS['primary'], 'fontWeight': '600'}),
-        dbc.Tab(label="Fiscal", tab_id="fiscal",
-               label_style={'color': COLORS['muted']},
-               active_label_style={'color': COLORS['primary'], 'fontWeight': '600'}),
-        dbc.Tab(label="Correlations", tab_id="correlations",
-               label_style={'color': COLORS['muted']},
-               active_label_style={'color': COLORS['primary'], 'fontWeight': '600'}),
-    ], id="tabs", active_tab="overview", className="mb-4"),
+        dbc.Tab(label="Overview", tab_id="overview"),
+        dbc.Tab(label="GDP Analysis", tab_id="gdp"),
+        dbc.Tab(label="Debt Analysis", tab_id="debt"),
+        dbc.Tab(label="Inflation", tab_id="inflation"),
+        dbc.Tab(label="Fiscal", tab_id="fiscal"),
+        dbc.Tab(label="Correlations", tab_id="correlations"),
+    ], id="tabs", active_tab="overview", className="mb-4 custom-tabs"),
     
     # Tab content
     html.Div(id="tab-content"),
@@ -952,16 +958,16 @@ app.layout = dbc.Container([
     # Footer
     dbc.Row([
         dbc.Col([
-            html.Hr(style={'borderColor': f'{COLORS["primary"]}40'}),
+            html.Hr(style={'borderColor': 'rgba(255,255,255,0.1)'}),
             html.P([
                 "Built with ",
                 html.Span("Dash", style={'color': COLORS['primary']}),
                 " & ",
                 html.Span("Plotly", style={'color': COLORS['tertiary']}),
                 " | Data: Central Bank of Kenya"
-            ], className="text-center text-muted", style={'fontSize': '0.8rem'})
+            ], className="text-center text-muted font-mono", style={'fontSize': '0.8rem'})
         ])
-    ], className="mt-4")
+    ], className="mt-5 mb-3")
     
 ], fluid=True, style={'backgroundColor': COLORS['background'], 'minHeight': '100vh'})
 

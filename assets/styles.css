@@ -1,28 +1,63 @@
-/* Kenya CBK Economic Dashboard - Custom Styles */
+/* Kenya CBK Economic Dashboard - Modern Styling */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap');
 
 /* CSS Variables */
 :root {
-    --cbk-primary: #00A86B;
-    --cbk-secondary: #FFD700;
-    --cbk-tertiary: #1E90FF;
-    --cbk-danger: #FF6B6B;
-    --bg-dark: #1a1a2e;
-    --bg-card: #16213e;
-    --text-light: #e8e8e8;
-    --text-muted: #8892b0;
+    /* Modern Palette */
+    --cbk-primary: #00F2EA;      /* Cyan */
+    --cbk-secondary: #FF0055;    /* Neon Pink */
+    --cbk-tertiary: #FFE600;     /* Electric Yellow */
+    --cbk-quaternary: #7000FF;   /* Deep Violet */
+    --cbk-success: #00F2EA;
+    --cbk-danger: #FF0055;
+    
+    /* Backgrounds */
+    --bg-dark: #05050A;          /* Almost black */
+    --bg-card: rgba(18, 18, 28, 0.6);
+    --bg-card-hover: rgba(25, 25, 40, 0.8);
+    
+    /* Text */
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0A0B0;
+    --text-muted: #606070;
+    
+    /* Effects */
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    --neon-shadow: 0 0 10px rgba(0, 242, 234, 0.3);
 }
 
 /* Global Styles */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', sans-serif;
     background-color: var(--bg-dark);
-    color: var(--text-light);
+    color: var(--text-primary);
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(0, 242, 234, 0.05) 0%, transparent 20%);
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+
+.kpi-value, .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.03em;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -30,237 +65,178 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--cbk-primary);
-    border-radius: 4px;
+    background: #333;
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #00c77a;
+    background: var(--cbk-primary);
 }
 
-/* Header styling */
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-    letter-spacing: -0.02em;
-}
-
-/* Card enhancements */
+/* Card Styling - Glassmorphism */
 .card {
-    border-radius: 12px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden;
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: var(--glass-border) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
+    background: var(--bg-card-hover) !important;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 168, 107, 0.15);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
-.card-body {
-    padding: 1rem;
-}
-
-/* Tab styling */
-.nav-tabs {
-    border-bottom: 2px solid rgba(0, 168, 107, 0.2);
-}
-
-.nav-tabs .nav-link {
-    border: none;
-    border-radius: 8px 8px 0 0;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    margin-right: 4px;
-}
-
-.nav-tabs .nav-link:hover {
-    background-color: rgba(0, 168, 107, 0.1);
-    border-color: transparent;
-}
-
-.nav-tabs .nav-link.active {
-    background-color: var(--bg-card);
-    border-bottom: 3px solid var(--cbk-primary);
-    color: var(--cbk-primary) !important;
-}
-
-/* KPI Card specific styling */
-.kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--cbk-primary), var(--cbk-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Chart container */
-.dash-graph {
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-/* Plotly chart customization */
-.js-plotly-plot .plotly .modebar {
-    right: 10px !important;
-}
-
-.js-plotly-plot .plotly .modebar-btn {
-    color: var(--text-muted) !important;
-}
-
-.js-plotly-plot .plotly .modebar-btn:hover {
-    color: var(--cbk-primary) !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .card-body {
-        padding: 0.75rem;
-    }
-    
-    .nav-tabs .nav-link {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
-    }
-    
-    h2 {
-        font-size: 1.5rem;
-    }
-    
-    h4 {
-        font-size: 1.1rem;
-    }
-}
-
-/* Loading animation */
-._dash-loading {
+/* KPI Cards */
+.kpi-card-icon {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 200px;
+    margin: 0 auto 1rem auto;
+    transition: all 0.3s ease;
 }
 
-._dash-loading::after {
+.card:hover .kpi-card-icon {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Tabs */
+.nav-tabs {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 2rem;
+}
+
+.nav-tabs .nav-link {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-secondary);
+    border: none;
+    background: transparent;
+    padding: 1rem 1.5rem;
+    font-size: 0.95rem;
+    position: relative;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--text-primary);
+    opacity: 1;
+}
+
+.nav-tabs .nav-link.active {
+    background: transparent !important;
+    color: var(--cbk-primary) !important;
+    font-weight: 600;
+    opacity: 1;
+    border: none;
+}
+
+.nav-tabs .nav-link.active::after {
     content: '';
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(0, 168, 107, 0.3);
-    border-top-color: var(--cbk-primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--cbk-primary);
+    box-shadow: var(--neon-shadow);
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+/* Charts */
+.dash-graph {
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-/* Tooltip styling */
-.plotly .hoverlayer .hovertext {
-    font-family: 'Inter', sans-serif !important;
+.js-plotly-plot .plotly .modebar {
+    right: 10px !important;
+    top: 0px !important;
 }
 
-/* Container padding */
-.container-fluid {
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
-
-@media (max-width: 768px) {
-    .container-fluid {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-}
-
-/* Gradient text for headers */
-.gradient-text {
-    background: linear-gradient(135deg, var(--cbk-primary) 0%, var(--cbk-secondary) 100%);
+/* Header */
+.header-title {
+    font-size: 2.5rem;
+    background: linear-gradient(to right, #fff, #a0a0b0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-/* Border accents */
-.border-accent {
-    border-left: 3px solid var(--cbk-primary);
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Stats highlight */
-.stat-positive {
-    color: var(--cbk-primary);
+.card {
+    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
-.stat-negative {
-    color: var(--cbk-danger);
+/* Stagger animations for cards */
+.row > div:nth-child(1) .card { animation-delay: 0.1s; }
+.row > div:nth-child(2) .card { animation-delay: 0.2s; }
+.row > div:nth-child(3) .card { animation-delay: 0.3s; }
+.row > div:nth-child(4) .card { animation-delay: 0.4s; }
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 1.75rem;
+    }
+    
+    .kpi-value {
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
 }
 
-/* Smooth transitions */
-* {
-    transition-property: background-color, border-color, box-shadow;
-    transition-duration: 0.15s;
-    transition-timing-function: ease-in-out;
+/* Loading Spinner */
+._dash-loading {
+    border-top-color: var(--cbk-primary) !important;
 }
 
-/* Focus states */
-button:focus,
-.btn:focus,
-a:focus {
-    outline: 2px solid var(--cbk-primary);
-    outline-offset: 2px;
+/* Utility Classes */
+.text-gradient-primary {
+    background: linear-gradient(135deg, var(--cbk-primary), var(--cbk-quaternary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-/* Table styling (if used) */
-table {
-    width: 100%;
-    border-collapse: collapse;
+.border-neon {
+    border: 1px solid var(--cbk-primary);
+    box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
 }
 
-th, td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.font-mono {
+    font-family: 'JetBrains Mono', monospace !important;
 }
 
-th {
-    background-color: rgba(0, 168, 107, 0.1);
-    font-weight: 600;
-    color: var(--cbk-primary);
+/* Hover effects for table rows if any */
+tr:hover td {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
 }
-
-tr:hover {
-    background-color: rgba(0, 168, 107, 0.05);
-}
-
-/* Badge styling */
-.badge {
-    padding: 0.4em 0.8em;
-    font-weight: 500;
-    border-radius: 6px;
-}
-
-.badge-success {
-    background-color: var(--cbk-primary);
-}
-
-.badge-warning {
-    background-color: var(--cbk-secondary);
-    color: #1a1a2e;
-}
-
-.badge-danger {
-    background-color: var(--cbk-danger);
-}
-
-/* Footer */
-footer, .footer {
-    opacity: 0.8;
-}
-
-footer:hover, .footer:hover {
-    opacity: 1;
-}
-
