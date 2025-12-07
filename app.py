@@ -18,10 +18,10 @@ from utils.data_loader import (
     get_latest_metrics, get_annual_fiscal_summary, calculate_debt_to_gdp
 )
 
-# Initialize the Dash app with Bootstrap theme
+# Initialize the Dash app with Bootstrap theme and FontAwesome
 app = dash.Dash(
     __name__,
-    external_stylesheets=[dbc.themes.SLATE],
+    external_stylesheets=[dbc.themes.SLATE, dbc.icons.FONT_AWESOME],
     suppress_callback_exceptions=True,
     meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1.0'}]
 )
@@ -969,7 +969,8 @@ app.layout = dbc.Container([
                 html.Span("Dash", style={'color': COLORS['primary']}),
                 " & ",
                 html.Span("Plotly", style={'color': COLORS['tertiary']}),
-                " | Data: Central Bank of Kenya"
+                " | Data: Central Bank of Kenya | ",
+                html.A("yours sincerely, Chiwai", href="https://www.linkedin.com/in/john-chiwai/", target="_blank", style={'color': COLORS['secondary'], 'textDecoration': 'none', 'fontWeight': '600'})
             ], className="text-center text-muted font-mono", style={'fontSize': '0.8rem'})
         ])
     ], className="mt-5 mb-3")
