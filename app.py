@@ -165,19 +165,20 @@ def create_overview_tab():
     ], className="mb-4")
     
     # Mini charts
-    # GDP Trend mini chart
+    # GDP Trend mini chart (convert to trillions)
     gdp_fig = go.Figure()
     gdp_fig.add_trace(go.Scatter(
-        x=gdp_data['Year'], y=gdp_data['Nominal_GDP'],
+        x=gdp_data['Year'], y=gdp_data['Nominal_GDP'] / 1e6,
         mode='lines+markers', name='Nominal GDP',
         line=dict(color=COLORS['primary'], width=3),
-        marker=dict(size=6, color=COLORS['background'], line=dict(color=COLORS['primary'], width=2))
+        marker=dict(size=6, color=COLORS['background'], line=dict(color=COLORS['primary'], width=2)),
+        hovertemplate='Year: %{x}<br>GDP: %{y:.2f}T<extra></extra>'
     ))
     
     layout = get_chart_layout(250)
     layout.update(
         margin=dict(l=40, r=20, t=40, b=40),
-        title=dict(text='GDP Trend', font=dict(size=14)),
+        title=dict(text='GDP Trend (KSh T)', font=dict(size=14)),
         showlegend=False,
         yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.08)', title=None)
     )
@@ -283,19 +284,25 @@ def create_gdp_tab():
     """Create the GDP Analysis tab content"""
     gdp_data = load_gdp_data()
     
+    # Convert from millions to trillions for display
+    gdp_nominal_t = gdp_data['Nominal_GDP'] / 1e6
+    gdp_real_t = gdp_data['Real_GDP'] / 1e6
+    
     # Main GDP chart - Nominal vs Real
     gdp_comparison = go.Figure()
     gdp_comparison.add_trace(go.Scatter(
-        x=gdp_data['Year'], y=gdp_data['Nominal_GDP'],
+        x=gdp_data['Year'], y=gdp_nominal_t,
         mode='lines+markers', name='Nominal GDP',
         line=dict(color=COLORS['primary'], width=3),
-        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['primary'], width=2))
+        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['primary'], width=2)),
+        hovertemplate='%{y:.2f}T<extra>Nominal GDP</extra>'
     ))
     gdp_comparison.add_trace(go.Scatter(
-        x=gdp_data['Year'], y=gdp_data['Real_GDP'],
+        x=gdp_data['Year'], y=gdp_real_t,
         mode='lines+markers', name='Real GDP',
         line=dict(color=COLORS['tertiary'], width=3),
-        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['tertiary'], width=2))
+        marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['tertiary'], width=2)),
+        hovertemplate='%{y:.2f}T<extra>Real GDP</extra>'
     ))
     
     layout = get_chart_layout(400)
@@ -342,7 +349,8 @@ def create_gdp_tab():
         mode='lines+markers', name='YoY Change',
         line=dict(color=COLORS['secondary'], width=3),
         marker=dict(size=6, color=COLORS['background'], line=dict(color=COLORS['secondary'], width=2)),
-        fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.1)'
+        fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.1)',
+        hovertemplate='Year: %{x}<br>Change: %{y:.1f}%<extra></extra>'
     ))
     
     yoy_layout = get_chart_layout(400)
@@ -384,19 +392,26 @@ def create_debt_tab():
     dom_debt = load_domestic_debt_data()
     debt_gdp = calculate_debt_to_gdp()
     
+    # Convert from millions to trillions for display
+    domestic_t = debt_data['Domestic_Debt'] / 1e6
+    external_t = debt_data['External_Debt'] / 1e6
+    total_t = debt_data['Total_Debt'] / 1e6
+    
     # Stacked area - Domestic vs External
     debt_area = go.Figure()
     debt_area.add_trace(go.Scatter(
-        x=debt_data['Date'], y=debt_data['Domestic_Debt'],
+        x=debt_data['Date'], y=domestic_t,
         mode='lines', name='Domestic Debt',
         stackgroup='one', fillcolor=f"rgba(0, 242, 234, 0.1)",
-        line=dict(color=COLORS['primary'], width=1)
+        line=dict(color=COLORS['primary'], width=1),
+        hovertemplate='%{y:.2f}T<extra>Domestic</extra>'
     ))
     debt_area.add_trace(go.Scatter(
-        x=debt_data['Date'], y=debt_data['External_Debt'],
+        x=debt_data['Date'], y=external_t,
         mode='lines', name='External Debt',
         stackgroup='one', fillcolor=f"rgba(255, 230, 0, 0.1)",
-        line=dict(color=COLORS['tertiary'], width=1)
+        line=dict(color=COLORS['tertiary'], width=1),
+        hovertemplate='%{y:.2f}T<extra>External</extra>'
     ))
     
     layout = get_chart_layout(400)
@@ -443,7 +458,8 @@ def create_debt_tab():
         mode='lines+markers', name='Debt/GDP',
         line=dict(color=COLORS['quaternary'], width=3),
         marker=dict(size=8, color=COLORS['background'], line=dict(color=COLORS['quaternary'], width=2)),
-        fill='tozeroy', fillcolor='rgba(112, 0, 255, 0.1)'
+        fill='tozeroy', fillcolor='rgba(112, 0, 255, 0.1)',
+        hovertemplate='Year: %{x}<br>Debt/GDP: %{y:.1f}%<extra></extra>'
     ))
     debt_gdp_chart.add_hline(y=50, line_dash="dash", line_color=COLORS['secondary'],
                             annotation_text="50% threshold", annotation_position="right",
@@ -461,10 +477,11 @@ def create_debt_tab():
     # Total debt trend
     total_debt_chart = go.Figure()
     total_debt_chart.add_trace(go.Scatter(
-        x=debt_data['Date'], y=debt_data['Total_Debt'],
+        x=debt_data['Date'], y=total_t,
         mode='lines', name='Total Debt',
         line=dict(color=COLORS['secondary'], width=3),
-        fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.05)'
+        fill='tozeroy', fillcolor='rgba(255, 0, 85, 0.05)',
+        hovertemplate='%{x|%b %Y}<br>Total: %{y:.2f}T<extra></extra>'
     ))
     
     td_layout = get_chart_layout(350)
@@ -624,19 +641,25 @@ def create_fiscal_tab():
     fiscal_summary = get_annual_fiscal_summary()
     fiscal_data = load_revenue_expenditure_data()
     
+    # Convert from millions to trillions for display
+    revenue_t = fiscal_summary['Total_Revenue'] / 1e6
+    expenditure_t = fiscal_summary['Total_Expenditure'] / 1e6
+    
     # Revenue vs Expenditure grouped bar
     rev_exp = go.Figure()
     rev_exp.add_trace(go.Bar(
         x=fiscal_summary['Fiscal_Year_End'], 
-        y=fiscal_summary['Total_Revenue'],
+        y=revenue_t,
         name='Revenue',
-        marker_color=COLORS['primary']
+        marker_color=COLORS['primary'],
+        hovertemplate='FY %{x}<br>Revenue: %{y:.2f}T<extra></extra>'
     ))
     rev_exp.add_trace(go.Bar(
         x=fiscal_summary['Fiscal_Year_End'], 
-        y=fiscal_summary['Total_Expenditure'],
+        y=expenditure_t,
         name='Expenditure',
-        marker_color=COLORS['danger']
+        marker_color=COLORS['danger'],
+        hovertemplate='FY %{x}<br>Expenditure: %{y:.2f}T<extra></extra>'
     ))
     
     re_layout = get_chart_layout(400)
@@ -649,7 +672,7 @@ def create_fiscal_tab():
     )
     rev_exp.update_layout(**re_layout)
     
-    # Revenue breakdown stacked bar
+    # Revenue breakdown stacked bar (convert to trillions)
     revenue_breakdown = go.Figure()
     for i, (col, label) in enumerate([
         ('Import_Duty', 'Import Duty'),
@@ -660,9 +683,10 @@ def create_fiscal_tab():
     ]):
         revenue_breakdown.add_trace(go.Bar(
             x=fiscal_summary['Fiscal_Year_End'],
-            y=fiscal_summary[col],
+            y=fiscal_summary[col] / 1e6,
             name=label,
-            marker_color=CHART_COLORS[i]
+            marker_color=CHART_COLORS[i],
+            hovertemplate=f'{label}: %{{y:.2f}}T<extra></extra>'
         ))
     
     rb_layout = get_chart_layout(400)
@@ -675,16 +699,17 @@ def create_fiscal_tab():
     )
     revenue_breakdown.update_layout(**rb_layout)
     
-    # Budget deficit/surplus trend
+    # Budget deficit/surplus trend (convert to trillions)
     fiscal_summary['Budget_Balance'] = fiscal_summary['Total_Revenue'] - fiscal_summary['Total_Expenditure']
-    balance_colors = [COLORS['primary'] if x >= 0 else COLORS['danger'] for x in fiscal_summary['Budget_Balance']]
+    balance_t = fiscal_summary['Budget_Balance'] / 1e6
+    balance_colors = [COLORS['primary'] if x >= 0 else COLORS['danger'] for x in balance_t]
     
     balance_chart = go.Figure()
     balance_chart.add_trace(go.Bar(
         x=fiscal_summary['Fiscal_Year_End'],
-        y=fiscal_summary['Budget_Balance'],
+        y=balance_t,
         marker_color=balance_colors,
-        text=[f"{x/1e6:.0f}T" for x in fiscal_summary['Budget_Balance']],
+        text=[f"{x:.2f}T" for x in balance_t],
         textposition='outside',
         textfont=dict(family=CHART_FONT)
     ))
@@ -775,10 +800,14 @@ def create_correlations_tab():
         # Handle negative GDP_Growth for size parameter (must be positive)
         merged['GDP_Growth_Size'] = merged['GDP_Growth'].abs() + 1
         
+        # Convert to trillions for display
+        merged['GDP_T'] = merged['Nominal_GDP'] / 1e6
+        merged['Debt_T'] = merged['Total_Debt'] / 1e6
+        
         # GDP vs Inflation scatter (without trendline to avoid statsmodels issues)
         gdp_inflation = go.Figure()
         gdp_inflation.add_trace(go.Scatter(
-            x=merged['Nominal_GDP'], 
+            x=merged['GDP_T'], 
             y=merged['Avg_Inflation'],
             mode='markers',
             marker=dict(
@@ -788,13 +817,13 @@ def create_correlations_tab():
                 showscale=True,
                 colorbar=dict(title='Year', titlefont=dict(family=CHART_FONT), tickfont=dict(family=CHART_FONT))
             ),
-            text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['Nominal_GDP']:,.0f}<br>Inflation: {r['Avg_Inflation']:.1f}%<br>Growth: {r['GDP_Growth']:.1f}%", axis=1),
+            text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['GDP_T']:.2f}T<br>Inflation: {r['Avg_Inflation']:.1f}%<br>Growth: {r['GDP_Growth']:.1f}%", axis=1),
             hovertemplate='%{text}<extra></extra>'
         ))
         # Add trendline manually using numpy
-        z = np.polyfit(merged['Nominal_GDP'], merged['Avg_Inflation'], 1)
+        z = np.polyfit(merged['GDP_T'], merged['Avg_Inflation'], 1)
         p = np.poly1d(z)
-        x_line = np.linspace(merged['Nominal_GDP'].min(), merged['Nominal_GDP'].max(), 100)
+        x_line = np.linspace(merged['GDP_T'].min(), merged['GDP_T'].max(), 100)
         gdp_inflation.add_trace(go.Scatter(
             x=x_line, y=p(x_line),
             mode='lines',
@@ -806,7 +835,7 @@ def create_correlations_tab():
         gi_layout = get_chart_layout(400)
         gi_layout.update(
             title=dict(text='GDP vs Inflation (sized by growth rate)', font=dict(size=16, family=TITLE_FONT)),
-            xaxis_title='Nominal GDP (KSh M)',
+            xaxis_title='Nominal GDP (KSh Trillion)',
             yaxis_title='Avg Inflation (%)'
         )
         gdp_inflation.update_layout(**gi_layout)
@@ -814,15 +843,15 @@ def create_correlations_tab():
         # Debt vs GDP scatter
         debt_gdp_scatter = go.Figure()
         debt_gdp_scatter.add_trace(go.Scatter(
-            x=merged['Nominal_GDP'], 
-            y=merged['Total_Debt'],
+            x=merged['GDP_T'], 
+            y=merged['Debt_T'],
             mode='markers',
             marker=dict(color=COLORS['tertiary'], size=12, line=dict(color=COLORS['background'], width=1)),
-            text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['Nominal_GDP']:,.0f}<br>Debt: {r['Total_Debt']:,.0f}", axis=1),
+            text=merged.apply(lambda r: f"Year: {r['Year']}<br>GDP: {r['GDP_T']:.2f}T<br>Debt: {r['Debt_T']:.2f}T", axis=1),
             hovertemplate='%{text}<extra></extra>'
         ))
         # Add trendline
-        z2 = np.polyfit(merged['Nominal_GDP'], merged['Total_Debt'], 1)
+        z2 = np.polyfit(merged['GDP_T'], merged['Debt_T'], 1)
         p2 = np.poly1d(z2)
         debt_gdp_scatter.add_trace(go.Scatter(
             x=x_line, y=p2(x_line),
@@ -835,8 +864,8 @@ def create_correlations_tab():
         dg_layout = get_chart_layout(400)
         dg_layout.update(
             title=dict(text='GDP vs Total Public Debt', font=dict(size=16, family=TITLE_FONT)),
-            xaxis_title='Nominal GDP (KSh M)',
-            yaxis_title='Total Debt (KSh M)'
+            xaxis_title='Nominal GDP (KSh Trillion)',
+            yaxis_title='Total Debt (KSh Trillion)'
         )
         debt_gdp_scatter.update_layout(**dg_layout)
     
