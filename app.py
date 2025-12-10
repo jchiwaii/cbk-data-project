@@ -300,10 +300,10 @@ def create_gdp_tab():
     
     layout = get_chart_layout(400)
     layout.update(
-        title=dict(text='Nominal vs Real GDP (KSh Million)', font=dict(size=16, family=TITLE_FONT)),
+        title=dict(text='Nominal vs Real GDP (KSh Trillion)', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         xaxis_title='Year',
-        yaxis_title='KSh Million',
+        yaxis_title='KSh Trillion',
         hovermode='x unified'
     )
     gdp_comparison.update_layout(**layout)
@@ -401,10 +401,10 @@ def create_debt_tab():
     
     layout = get_chart_layout(400)
     layout.update(
-        title=dict(text='Public Debt Composition Over Time (KSh Million)', font=dict(size=16, family=TITLE_FONT)),
+        title=dict(text='Public Debt Composition Over Time (KSh Trillion)', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         xaxis_title=None,
-        yaxis_title='KSh Million',
+        yaxis_title='KSh Trillion',
         hovermode='x unified'
     )
     debt_area.update_layout(**layout)
@@ -471,7 +471,7 @@ def create_debt_tab():
     td_layout.update(
         title=dict(text='Total Public Debt Trend', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title=None,
-        yaxis_title='KSh Million'
+        yaxis_title='KSh Trillion'
     )
     total_debt_chart.update_layout(**td_layout)
     
@@ -644,7 +644,7 @@ def create_fiscal_tab():
         title=dict(text='Annual Revenue vs Expenditure (Fiscal Year End - June)', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         xaxis_title='Fiscal Year',
-        yaxis_title='KSh Million',
+        yaxis_title='KSh Trillion',
         barmode='group'
     )
     rev_exp.update_layout(**re_layout)
@@ -670,7 +670,7 @@ def create_fiscal_tab():
         title=dict(text='Revenue Breakdown by Source', font=dict(size=16, family=TITLE_FONT)),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5),
         xaxis_title='Fiscal Year',
-        yaxis_title='KSh Million',
+        yaxis_title='KSh Trillion',
         barmode='stack'
     )
     revenue_breakdown.update_layout(**rb_layout)
@@ -694,7 +694,7 @@ def create_fiscal_tab():
     bc_layout.update(
         title=dict(text='Budget Balance (Surplus/Deficit)', font=dict(size=16, family=TITLE_FONT)),
         xaxis_title='Fiscal Year',
-        yaxis_title='KSh Million'
+        yaxis_title='KSh Trillion'
     )
     balance_chart.update_layout(**bc_layout)
     
