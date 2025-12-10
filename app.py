@@ -1024,7 +1024,7 @@ app.layout = dbc.Container([
                 " & ",
                 html.Span("Plotly", style={'color': COLORS['tertiary']}),
                 " | Data: Central Bank of Kenya | ",
-                html.A("yours sincerely, Chiwai", href="https://www.linkedin.com/in/john-chiwai/", target="_blank", style={'color': COLORS['secondary'], 'textDecoration': 'none', 'fontWeight': '600'})
+                html.A("yours sincerely", href="https://www.linkedin.com/in/john-chiwai/", target="_blank", style={'color': COLORS['secondary'], 'textDecoration': 'none', 'fontWeight': '600'})
             ], className="text-center text-muted font-mono", style={'fontSize': '0.8rem'})
         ])
     ], className="mt-5 mb-3")
