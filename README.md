@@ -1,7 +1,7 @@
 # Kenya Economic Dashboard
 
 Interactive dashboard analyzing Kenya's macroeconomic data from the Central Bank of Kenya (CBK).
-
+Full [report] ([https://medium.com/@chiwai.kiriba/the-shilling-the-strain-and-the-dream-kenyas-economy-in-numbers-2dd273d03d05])
 ## Features
 
 - **GDP Analysis** - Nominal/Real GDP trends and growth rates
