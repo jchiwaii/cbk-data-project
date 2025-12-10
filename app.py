@@ -247,12 +247,12 @@ def create_overview_tab():
     charts_row = dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardBody([dcc.Graph(figure=gdp_fig, config={'displayModeBar': False})])
+                dbc.CardBody([dcc.Graph(figure=gdp_fig, config={'displayModeBar': True})])
             ], className="border-0 glass-card")
         ], md=6, className="mb-4"),
         dbc.Col([
             dbc.Card([
-                dbc.CardBody([dcc.Graph(figure=debt_pie, config={'displayModeBar': False})])
+                dbc.CardBody([dcc.Graph(figure=debt_pie, config={'displayModeBar': True})])
             ], className="border-0 glass-card")
         ], md=6, className="mb-4"),
     ])
@@ -260,12 +260,12 @@ def create_overview_tab():
     charts_row2 = dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardBody([dcc.Graph(figure=inflation_fig, config={'displayModeBar': False})])
+                dbc.CardBody([dcc.Graph(figure=inflation_fig, config={'displayModeBar': True})])
             ], className="border-0 glass-card")
         ], md=6, className="mb-4"),
         dbc.Col([
             dbc.Card([
-                dbc.CardBody([dcc.Graph(figure=growth_fig, config={'displayModeBar': False})])
+                dbc.CardBody([dcc.Graph(figure=growth_fig, config={'displayModeBar': True})])
             ], className="border-0 glass-card")
         ], md=6, className="mb-4"),
     ])
