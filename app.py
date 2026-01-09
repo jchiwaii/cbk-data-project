@@ -26,6 +26,7 @@ app = dash.Dash(
     meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1.0'}]
 )
 app.title = "Kenya Economic Dashboard | CBK Data"
+server = app.server  # Expose the Flask server for deployment
 
 # Color palette - Matching CSS variables
 COLORS = {
